@@ -2,15 +2,18 @@
 #include "Map.h"
 #include <string>
 using namespace std;
+#include "Board.hpp"
 #include <ncurses.h>
-
-
 
 Map::Map() {}
 
 Map::Map(int stage) {
-    mapName = "map1.txt";
+    if (stage == 1) mapName = "map1.txt";
+    if (stage == 2) mapName = "map2.txt";
+    if (stage == 3) mapName = "map3.txt";
+    if (stage == 4) mapName = "map4.txt";
     load();
+    displayMap();
 }
 
 
@@ -67,40 +70,27 @@ void Map::displayMap() {  // 화면에 출력
     cbreak(); 
     curs_set(0); 
 
-    for (int i = 0; i < mapY; ++i) {
-        for (int j = 0; j < mapX; ++j) {
-            move(i, j);
-            switch (map[i][j]) {
-                case 0:
-                    addch(' '); // Empty space
-                    break;
-                case 1:
-                    addch('#'); // Wall
-                    break;
-                case 2:
-                    addch('#'); // immune wall
-                    break;
-                case 3:
-                    addch('B'); // Snake body
-                    break;
-                case 4:
-                    addch('H'); // Snake head
-                    break;
-                case 9:
-                    addch('X'); // poison item
-                case 7 :
-                    addch('+'); // growth item
-                default:
-                    break;
+    Board board(mapY, mapX);
+
+    for (int i = 0; i < mapY; i++) {
+        for(int j = 0; j < mapX; j++) {
+            if (map[i][j] == 0) wprintw(board.board_win, " ");
+            if (map[i][j] == 1 || map[i][j] == 2) {
+                wprintw(board.board_win, " ");
+                mvwprintw(board.board_win, i, 3*j, "o");
+            }
+            if (map[i][j] == 3) {
+                wprintw(board.board_win, " ");
+                mvwprintw(board.board_win, i, 3*j, "B");
+            }
+            if (map[i][j] == 4) {
+                wprintw(board.board_win, " ");
+                mvwprintw(board.board_win, i, 3*j, "H");
             }
         }
     }
 
-    refresh(); 
-
-    getch(); 
+    board.refresh();
 
     endwin(); 
 }
-
-
