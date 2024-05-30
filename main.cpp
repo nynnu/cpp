@@ -1,18 +1,10 @@
-#include "Map.h"
-#include <ncurses.h>
-#include "Board.hpp"
+#include "Map.hpp"
+#include "View.hpp"
 
-int main(int argc, char **argv)
-{
-    initscr();
-    refresh();
-
-    Map map(1);
-
-    refresh();
-
-    getch();
-    endwin();
+int main() {
+    Map map(1);  //stage1 stage2, stage3.. 
+    View view;
+    view.viewMap(map);
 
     return 0;
 }
