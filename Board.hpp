@@ -3,13 +3,13 @@
 class Board
 {
 public:
-    Board(int height = 60, int width = 60)
+    Board(int height = 60, int width = 60, int speed = 300)
     {
-        int xMax, yMax;
-        getmaxyx(stdscr, yMax, xMax);
+        timeout = speed;
 
         board_win = newwin(height, width * 3, 6, 2);
-        initialize();
+        wtimeout(board_win, timeout);
+		keypad(board_win, true);
     }
 
     void initialize(){
@@ -20,13 +20,23 @@ public:
     void addAt(int y, int x, chtype ch)
     {
         mvwaddch(board_win, y, x, ch);
-
     }
+
+    int getTimeout()
+	{
+		return timeout;
+	}
+
 
     chtype getInput()
     {
         return wgetch(board_win);
     }
+
+    chtype getChar(int y, int x)
+	{
+		return mvwinch(board_win, y, x);
+	}
 
     void clear()  // 화면을 클리어
     {
@@ -39,4 +49,5 @@ public:
     }
 
     WINDOW *board_win;
+    int timeout;
 };

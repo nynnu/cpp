@@ -1,10 +1,27 @@
 #include "Map.hpp"
 #include "View.hpp"
+#include "Game.hpp"
 
 int main() {
-    Map map(1);  //stage1 stage2, stage3.. 
-    View view;
-    view.viewMap(map);
+    initscr();
+	refresh();	
+	noecho();	
+
+	curs_set(0);
+	
+	Game game(22, 65, 200);
+
+	while(!game.over())
+	{
+		game.input();
+
+		game.update();
+
+		game.reDraw();
+	}
+
+	endwin();
+
 
     return 0;
 }

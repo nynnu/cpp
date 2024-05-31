@@ -1,7 +1,10 @@
 // show
+#pragma once
 #include <ncurses.h>
 #include "Board.hpp"
 #include "Map.hpp"
+#include "Snake.hpp"
+#include "Game.hpp"
 
 class View{
 public:
@@ -16,7 +19,11 @@ public:
         endwin();
     }
 
-    void viewMap(Map map) {
+    void draw(Map map, Snake snake) {
+        drawMap(map);
+    }
+
+    void drawMap(Map map) {
         game = newwin(22, 65, 6, 2);
         refresh();
         
@@ -33,6 +40,7 @@ public:
         }
         wrefresh(game);
     }
+
 private:
     WINDOW *game;
     WINDOW *score;
