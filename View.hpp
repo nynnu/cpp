@@ -43,7 +43,7 @@ public:
     void drawGame() {
 	    refresh();	
         
-    	Game SnakeGame(22, 65, 200);    
+    	Game SnakeGame(22, 65, 200, game);    
         
 	    while(!SnakeGame.over())
 	    {

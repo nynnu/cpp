@@ -9,8 +9,7 @@
 
 class Game{
 public:
-    Game(int height, int width, int speed = 300) {
-        board = Board(height, width, speed);
+    Game(int height, int width, int speed, WINDOW * game) : board(height, width, speed, game) {
         initialize();
     }
 
@@ -22,7 +21,7 @@ public:
         
         snake.setDirection(downD);
         
-        manage(SnakePiece(1,1));
+        manage(SnakePiece(2,2));
         manage(snake.nextHead());
         manage(snake.nextHead());
 

@@ -4,11 +4,11 @@
 class Board
 {
 public:
-    Board(int height = 60, int width = 60, int speed = 300)
+    Board(int height, int width , int speed, WINDOW * game)
     {
         timeout = speed;
 
-        board_win = newwin(22, 65, 6, 2);
+        board_win = game;
         wtimeout(board_win, timeout);
 		keypad(board_win, true);
     }
