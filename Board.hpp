@@ -8,7 +8,7 @@ public:
     {
         timeout = speed;
 
-        board_win = newwin(height, width * 3, 6, 2);
+        board_win = newwin(22, 65, 6, 2);
         wtimeout(board_win, timeout);
 		keypad(board_win, true);
     }
@@ -48,7 +48,7 @@ public:
 
     void clear()  // 화면을 클리어
     {
-        wclear(board_win);
+        //wclear(board_win);
     }
 
     void refresh()

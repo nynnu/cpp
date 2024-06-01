@@ -1,4 +1,3 @@
-// show
 #pragma once
 #include <ncurses.h>
 #include "Board.hpp"
@@ -15,20 +14,19 @@ public:
     }
 
     ~View() {
-        getch();
         endwin();
     }
 
     void draw(Map map) {
-        drawMap(map);
+        drawMap(map);   
         drawGame();
     }
 
     void drawMap(Map map) {
-        game = newwin(22, 65, 6, 2);
+        game = newwin(22, 65, 6, 2);        // window to draw map
         refresh();
         
-        for(int i = 0; i < map.mapY; i++) {
+        for(int i = 0; i < map.mapY; i++) {     // draw map onto window
             for (int j = 0; j < map.mapX; j++){
                 int number = map.getValue(i, j);
                 if (number == 1 || number == 2) {
@@ -39,14 +37,14 @@ public:
                 }
             }
         }
-        wrefresh(game);
+        wrefresh(game);     // Apply Changes at window screen
     }
 
     void drawGame() {
 	    refresh();	
-	
-    	Game SnakeGame(22, 65, 200);
-
+        
+    	Game SnakeGame(22, 65, 200);    
+        
 	    while(!SnakeGame.over())
 	    {
 		    SnakeGame.input();
@@ -55,8 +53,6 @@ public:
 
 		    SnakeGame.reDraw();
 	    }
-
-    	endwin();
     }
 
 private:
