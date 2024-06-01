@@ -9,10 +9,10 @@ enum DIRECTION {
 
 class SnakePiece {
 public:
-    SnakePiece(int y, int x) {
+    SnakePiece(int y, int x, chtype ch = '#') {
         this->y = y;
         this->x = x;
-        this->icon = '#';
+        this->icon = ch;
     }
     
     int getX() {

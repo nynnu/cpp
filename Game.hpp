@@ -5,6 +5,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <iostream>
+#include "Apple.hpp"
 
 class Game{
 public:
@@ -14,14 +15,21 @@ public:
     }
 
     void initialize() {
+        apple = NULL;
         board.initialize();
         gameOver = false;
         srand(time(NULL));      // 난수 생성기 시드 초기화
         
         snake.setDirection(downD);
-        manage(SnakePiece(1, 1));
-        manage(SnakePiece(snake.nextHead()));
-        manage(SnakePiece(snake.nextHead()));
+        
+        manage(SnakePiece(1,1));
+        manage(snake.nextHead());
+        manage(snake.nextHead());
+
+        if (apple == NULL) {
+            int x, y;
+            apple = new Apple(10, 10);
+        }
     }
 
     bool over() {
@@ -63,19 +71,24 @@ private:
     Snake snake;
     int bodyCount = 3;      // 뱀의 길이 (길이가 3보다 작아지면 게임 종료)
     bool gameOver;
+    Apple * apple;
 
     void manage(SnakePiece next) {
-        switch (board.getChar(next.getY(), next.getX())) {
-            case ' ': {
-                int emptyY = snake.tail().getY();       // 지울 곳의 y 좌표
-	            int emptyX = snake.tail().getX();       // 지울 곳의 x 좌표
-        	    board.addAt(emptyY, emptyX, ' ');
-                snake.removePiece();
-				break;
+        if (apple != NULL) {
+            switch (board.getChar(next.getY(), next.getX())) {
+                case ' ': {
+                    int emptyY = snake.tail().getY();       // 지울 곳의 y 좌표
+	                int emptyX = snake.tail().getX();       // 지울 곳의 x 좌표
+        	        board.addEmpty(SnakePiece(emptyY, emptyX));
+                    snake.removePiece();
+				    break;
+                }
+                case 'A':
+                    break;
+                default:
+                    gameOver = true;
+                    break;
             }
-            default:
-                gameOver = true;
-                break;
         }
         
         board.addAt(next.getY(), next.getX(), next.getI());

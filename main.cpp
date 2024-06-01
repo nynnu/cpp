@@ -3,25 +3,9 @@
 #include "Game.hpp"
 
 int main() {
-    initscr();
-	refresh();	
-	noecho();	
-
-	curs_set(0);
-	
-	Game game(22, 65, 200);
-
-	while(!game.over())
-	{
-		game.input();
-
-		game.update();
-
-		game.reDraw();
-	}
-
-	endwin();
-
+    View view;
+    Map map(1);
+    view.draw(map);
 
     return 0;
 }

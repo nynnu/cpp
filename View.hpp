@@ -19,8 +19,9 @@ public:
         endwin();
     }
 
-    void draw(Map map, Snake snake) {
+    void draw(Map map) {
         drawMap(map);
+        drawGame();
     }
 
     void drawMap(Map map) {
@@ -39,6 +40,23 @@ public:
             }
         }
         wrefresh(game);
+    }
+
+    void drawGame() {
+	    refresh();	
+	
+    	Game SnakeGame(22, 65, 200);
+
+	    while(!SnakeGame.over())
+	    {
+		    SnakeGame.input();
+
+		    SnakeGame.update();
+
+		    SnakeGame.reDraw();
+	    }
+
+    	endwin();
     }
 
 private:

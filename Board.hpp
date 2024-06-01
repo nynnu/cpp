@@ -1,5 +1,6 @@
 #pragma once
 #include <ncurses.h>
+#include "Snake.hpp"
 class Board
 {
 public:
@@ -17,16 +18,23 @@ public:
         refresh();
     }
 
+    void add(SnakePiece Piece) {
+        addAt(Piece.getY(), Piece.getX(), Piece.getI());
+    }
+
     void addAt(int y, int x, chtype ch)
     {
         mvwaddch(board_win, y, x, ch);
+    }
+
+    void addEmpty(SnakePiece piece) {
+        addAt(piece.getY(), piece.getX(), ' ');
     }
 
     int getTimeout()
 	{
 		return timeout;
 	}
-
 
     chtype getInput()
     {
