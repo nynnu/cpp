@@ -1,18 +1,14 @@
-#include "Map.h"
-#include <ncurses.h>
-#include "Board.hpp"
+//main.cpp
 
-int main(int argc, char **argv)
-{
-    initscr();
-    refresh();
 
-    Map map(2);
+#include "Map.hpp"
+#include "View.hpp"
+#include "Game.hpp"
 
-    refresh();
-
-    getch();
-    endwin();
+int main() {
+    View view;
+    Map map(1); // 맵 스테이지를 1로 설정
+    view.draw(map);
 
     return 0;
 }
