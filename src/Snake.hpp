@@ -26,7 +26,7 @@ class Snake {
 public:
     Snake() : curDirection(downD) {}
 
-    void addPiece(SnakePiece piece){
+    void addPiece(SnakePiece piece) {
         prevPiece.push(piece);
     }
 
@@ -50,8 +50,15 @@ public:
         return curDirection;
     }
 
+    // 진행방향의 반대방향으로 이동할 수 없도록 설정
+    bool canChangeDirection(DIRECTION newDirection) const {
+        return curDirection != -newDirection;
+    }
+
     void setDirection(DIRECTION D) {
-        curDirection = D;
+        if (canChangeDirection(D)) {
+            curDirection = D;
+        }
     }
 
     SnakePiece nextHead() const {

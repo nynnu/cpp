@@ -49,7 +49,7 @@ public:
         wrefresh(board_win);
     }
 
-    WINDOW* getBoardWin() const {  // board_win을 접근할 수 있는 메서드 추가
+    WINDOW* getBoardWin() const {
         return board_win;
     }
 

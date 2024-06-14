@@ -1,5 +1,6 @@
 //View.hpp
 
+
 #pragma once
 #include <ncurses.h>
 #include "Board.hpp"
@@ -20,7 +21,7 @@ public:
     }
 
     void draw(Map& map) {
-        gameWindow = newwin(map.mapY, map.mapX, 0, 0);  // window to draw map
+        gameWindow = newwin(map.mapY, map.mapX, 0, 0); 
         drawMap(map);
         drawGame(map);
     }
@@ -40,11 +41,11 @@ public:
                 }
             }
         }
-        wrefresh(gameWindow);  // Apply Changes at window screen
+        wrefresh(gameWindow);  
     }
 
     void drawGame(Map& map) {
-        Game snakeGame(map.mapY, map.mapX, 200, gameWindow, map);  // map 객체를 전달
+        Game snakeGame(map.mapY, map.mapX, 200, gameWindow, map);  
 
         while (!snakeGame.over()) {
             snakeGame.input();
