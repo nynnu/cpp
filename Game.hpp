@@ -37,7 +37,7 @@ public:
         return gameOver;
     }
 
-    // 사용자 입력 처리 함수
+    // 사용자 입력 처리 함수.
     void input() {
         chtype input = board.getInput();
         switch (input) {
