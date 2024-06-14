@@ -162,7 +162,7 @@ private:
         }
     }
 
-    
+    // 뱀의 새로운 머리를 추가하고 꼬리를 제거하는 함수
     void addSnakePiece(SnakePiece next) {
         if (snake.getLength() > 0) {
             SnakePiece head = snake.head();

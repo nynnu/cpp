@@ -3,15 +3,14 @@
 #include <ncurses.h>
 #include <vector>
 #include <ctime>
-#include <cstdlib>
 #include "Snake.hpp"
 #include "Board.hpp"
 #include "Map.hpp"
 
 class Gate {
 public:
-    Gate(int maxY, int maxX, int spawnTime)
-        : maxY(maxY), maxX(maxX), spawnTime(spawnTime), isActive(false) {
+    Gate(int maxY, int maxX, int spawnInterval)
+        : maxY(maxY), maxX(maxX), spawnInterval(spawnInterval), isActive(false) {
         startTime = time(NULL);
     }
 
@@ -20,20 +19,34 @@ public:
     }
 
     void update(Board& board) {
-        if (!isActive && difftime(time(NULL), startTime) > spawnTime) {
-            placeGates(board);
-            isActive = true;
+        time_t now = time(NULL);
+        if (isActive) {
+            if (!snakeInGate && difftime(now, startTime) > gateLifetime) {
+                removeGates(board);
+                isActive = false;
+                startTime = now + rand() % spawnInterval; // 랜덤 시간 후 게이트 재생성
+            }
+        } else {
+            if (difftime(now, startTime) > spawnInterval) {
+                placeGates(board);
+                isActive = true;
+                startTime = now; // 게이트 생성 시간 초기화
+            }
         }
     }
 
     std::pair<int, int> getNextPosition(const SnakePiece& head, DIRECTION& newDir) {
         if (!isActive) return { -1, -1 };
 
+        snakeInGate = true; // 뱀이 게이트에 들어가는 것을 감지
+
         if (head.getY() == gate1.first && head.getX() == gate1.second) {
             return getExitPosition(gate2, head, newDir);
         } else if (head.getY() == gate2.first && head.getX() == gate2.second) {
             return getExitPosition(gate1, head, newDir);
         }
+
+        snakeInGate = false; // 뱀이 게이트에서 나왔음을 감지
         return { -1, -1 };
     }
 
@@ -42,8 +55,10 @@ private:
     std::pair<int, int> gate1, gate2;
     int maxY, maxX;
     bool isActive;
+    bool snakeInGate = false;
     time_t startTime;
-    int spawnTime;
+    int spawnInterval;
+    const int gateLifetime = 10; // 게이트 지속 시간  10초. 10초 지나면 지워짐
 
     void findWallPositions(Map& map) {
         wallPositions.clear();
@@ -72,6 +87,11 @@ private:
 
         board.addAt(gate1.first, gate1.second, 'G');
         board.addAt(gate2.first, gate2.second, 'G');
+    }
+
+    void removeGates(Board& board) {  // 게이트 지우기. 
+        board.addAt(gate1.first, gate1.second, 'o');
+        board.addAt(gate2.first, gate2.second, 'o');
     }
 
     bool areGatesOnSameWall(int idx1, int idx2) {
@@ -122,3 +142,4 @@ private:
         return { -1, -1 };
     }
 };
+
