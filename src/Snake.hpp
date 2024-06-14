@@ -26,7 +26,7 @@ class Snake {
 public:
     Snake() : curDirection(downD) {}
 
-    void addPiece(SnakePiece piece) {
+    void addPiece(SnakePiece piece){
         prevPiece.push(piece);
     }
 

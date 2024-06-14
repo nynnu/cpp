@@ -1,3 +1,5 @@
+// game.hpp
+
 #pragma once
 #include <ncurses.h>
 #include "Snake.hpp"
@@ -20,6 +22,7 @@ public:
         gameOver = false;
         srand(time(NULL)); // 난수 생성기 시드 초기화
         initializeBoardWithMap();
+        initializeItems();  // 게임 시작 시 아이템 초기화
     }
 
     void initializeItems() {
@@ -30,16 +33,9 @@ public:
     void initializeSnake(int startY, int startX) {
         snake.setDirection(downD);
 
-        // 뱀 초기 위치 설정
-        SnakePiece head(startY, startX, '@');
-        snake.addPiece(head);
-        board.add(head);
-        for (int i = 1; i <= 2; ++i) {
-            SnakePiece body(startY, startX - i, '#');
-            snake.addPiece(body);
-            board.add(body);
-        }
+
     }
+
 
     bool over() const {
         return gameOver;
@@ -72,6 +68,8 @@ public:
             next = SnakePiece(next.getY(), next.getX(), '@');
             addSnakePiece(next);
             if (ch == 'A') {
+                snake.addPiece(next);  // 뱀 몸통 추가
+                itemManager.removeItemAt(next.getY(), next.getX());  // 아이템 제거
                 itemManager.spawnItems();
             }
         } else if (ch == 'P') {
@@ -79,6 +77,10 @@ public:
                 SnakePiece tail = snake.tail();
                 board.addEmpty(tail);
                 snake.removePiece();
+                itemManager.removeItemAt(next.getY(), next.getX());  // 아이템 제거
+                if (snake.getLength() < 3) {
+                    gameOver = true;  // 몸 길이가 3보다 작아지면 게임 오버
+                }
             } else {
                 gameOver = true;
             }
@@ -118,6 +120,7 @@ private:
             }
         }
     }
+
 
     void addSnakePiece(SnakePiece next) {
         if (snake.getLength() > 0) {
