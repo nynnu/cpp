@@ -13,49 +13,68 @@ public:
         initscr();
         noecho();
         curs_set(0);
+        start_color();
     }
 
     ~View() {
         endwin();
     }
 
-    void draw(Map& map, int gateSpawnTime) {
-        gameWindow = newwin(map.mapY, map.mapX, 0, 0); 
-        drawMap(map);
-        drawGame(map, gateSpawnTime);
-    }
+    void draw(int gateSpawnTime) {
+        int currentStage = 1;
+        bool missionCompleted = false;
 
-    void drawMap(Map& map) {
-        for (int i = 0; i < map.mapY; ++i) {
-            for (int j = 0; j < map.mapX; ++j) {
-                int number = map.getValue(i, j);
-                if (number == 1) {  // 일반 벽 표시
-                    mvwprintw(gameWindow, i, j, "o");
-                } else if (number == 2) {  // immune wall 표시
-                    mvwprintw(gameWindow, i, j, "O");
-                } else if (number == 0) {  // 빈 공간 표시
-                    mvwprintw(gameWindow, i, j, " ");
-                } else if (number == 4) {  // 뱀 머리 표시
-                    mvwprintw(gameWindow, i, j, "@");
-                } else if (number == 3) {  // 뱀 몸통 표시
-                    mvwprintw(gameWindow, i, j, "#");
+        while (currentStage <= 4 && !missionCompleted) {
+            try {
+                Map stageMap(currentStage);
+                gameWindow = newwin(stageMap.mapY, stageMap.mapX, 0, 0); 
+                Game snakeGame = drawGame(stageMap, gateSpawnTime);
+
+                if (snakeGame.missionAchieved()) {
+                    currentStage++;
+                    missionCompleted = (currentStage > 4);
                 }
+
+                delwin(gameWindow);
+
+            } catch (const std::exception &e) {
+                mvprintw(0, 0, "Error: %s", e.what());
+                refresh();
+                getch();
+                break;
             }
         }
-        wrefresh(gameWindow);  
+
+        if (missionCompleted) {
+            displayCongratulations();
+        }
     }
 
-    void drawGame(Map& map, int gateSpawnTime) {
+    Game drawGame(Map& map, int gateSpawnTime) {
         Game snakeGame(map.mapY, map.mapX, 200, gameWindow, map, gateSpawnTime);  
 
         while (!snakeGame.over()) {
             snakeGame.input();
             snakeGame.update();
             snakeGame.reDraw();
+
+            if (snakeGame.missionAchieved()) {
+                break;
+            }
         }
 
-        // 게임 종료 메시지
-        snakeGame.displayGameOver();  // 게임 오버 메시지를 표시
+        if (snakeGame.over() && !snakeGame.missionAchieved()) {
+            snakeGame.displayGameOver();  // 게임 오버 메시지를 표시
+        }
+
+        return snakeGame;
+    }
+
+    void displayCongratulations() {
+        mvwprintw(gameWindow, 10, 10, "CONGRATULATIONS! You've completed all stages!");
+        wrefresh(gameWindow);
+        nodelay(gameWindow, FALSE);  // 입력을 기다리도록 설정
+        wgetch(gameWindow);  // 사용자 입력 대기
     }
 
 private:

@@ -1,4 +1,5 @@
 // Board.hpp
+
 #pragma once
 #include <ncurses.h>
 #include "Snake.hpp"
@@ -6,11 +7,18 @@
 class Board {
 public:
     Board(int height, int width, int speed, WINDOW* game)
-        : board_win(game), speed(speed) {
+        : board_win(game), speed(speed), score_win(nullptr), mission_win(nullptr) {
         initialize();
     }
 
+    ~Board() {
+        if (score_win) delwin(score_win);
+        if (mission_win) delwin(mission_win);
+    }
+
     void initialize() {
+        if (!score_win) score_win = newwin(11, 20, 0, 24);
+        if (!mission_win) mission_win = newwin(11, 20, 11, 24);
         wtimeout(board_win, speed);
         keypad(board_win, true);
         clear();
@@ -91,8 +99,8 @@ private:
     }
 
     WINDOW* board_win;
-    WINDOW* score_win = newwin(11, 20, 0, 24);
-    WINDOW* mission_win = newwin(11, 20, 11, 24);
+    WINDOW* score_win;
+    WINDOW* mission_win;
     int speed;
     int snakeC{0}, maxSnakeC{0}, appleC{0}, poisonC{0}, gateC{0};
     int snakeM{0}, appleM{0}, poisonM{0}, gateM{0};

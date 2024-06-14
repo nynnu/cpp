@@ -1,5 +1,4 @@
-// game.hpp
-
+// Game.hpp
 #pragma once
 #include <ncurses.h>
 #include "Snake.hpp"
@@ -39,6 +38,10 @@ public:
     // 게임 오버 상태 확인 함수
     bool over() const {
         return gameOver;
+    }
+
+    bool missionAchieved() const {
+        return snakeSF == 'O' && appleSF == 'O' && poisonSF == 'O' && gateSF == 'O';
     }
 
     void randomMission() {

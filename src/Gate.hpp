@@ -1,10 +1,10 @@
 // Gate.hpp
 
-// Gate.hpp
 #pragma once
 #include <ncurses.h>
 #include <vector>
 #include <ctime>
+#include <algorithm> // std::any_of
 #include "Snake.hpp"
 #include "Board.hpp"
 #include "Map.hpp"
@@ -18,6 +18,7 @@ public:
 
     void initialize(Map& map, Board& board) {
         findWallPositions(map);
+        findEmptyPositions(map);
     }
 
     void update(Board& board) {
@@ -54,13 +55,14 @@ public:
 
 private:
     std::vector<std::pair<int, int>> wallPositions;
+    std::vector<std::pair<int, int>> emptyPositions;
     std::pair<int, int> gate1, gate2;
     int maxY, maxX;
     bool isActive;
     bool snakeInGate = false;
     time_t startTime;
     int spawnInterval;
-    const int gateLifetime = 10; // 게이트 지속 시간  10초. 10초 지나면 지워짐
+    const int gateLifetime = 10; // 게이트 지속 시간 10초. 10초 지나면 지워짐
 
     void findWallPositions(Map& map) {
         wallPositions.clear();
@@ -73,10 +75,24 @@ private:
         }
     }
 
-    void placeGates(Board& board) {
-        if (wallPositions.size() < 2) return; // 최소 두 개의 게이트 필요
+    void findEmptyPositions(Map& map) {
+        emptyPositions.clear();
+        for (int y = 0; y < map.mapY; ++y) {
+            for (int x = 0; x < map.mapX; ++x) {
+                if (map.getValue(y, x) == 0) { // 빈 공간 위치
+                    emptyPositions.push_back({ y, x });
+                }
+            }
+        }
+    }
 
-        do {
+    void placeGates(Board& board) {
+        if (wallPositions.empty() || emptyPositions.empty()) return; // 벽과 빈 공간 위치가 없으면 리턴
+
+        int gateType = rand() % 2; // 0이면 벽-벽, 1이면 벽-빈 공간
+
+        if (gateType == 0) {
+            // 벽-벽 게이트 생성
             int idx1 = rand() % wallPositions.size();
             int idx2;
             do {
@@ -85,15 +101,22 @@ private:
 
             gate1 = wallPositions[idx1];
             gate2 = wallPositions[idx2];
-        } while (areGatesOnSameWall());
+        } else {
+            // 벽-빈 공간 게이트 생성
+            int idx1 = rand() % wallPositions.size();
+            int idx2 = rand() % emptyPositions.size();
+
+            gate1 = wallPositions[idx1];
+            gate2 = emptyPositions[idx2];
+        }
 
         board.addAt(gate1.first, gate1.second, 'G');
         board.addAt(gate2.first, gate2.second, 'G');
     }
 
-    void removeGates(Board& board) {  // 게이트 지우기. 
+    void removeGates(Board& board) {
         board.addAt(gate1.first, gate1.second, 'o');
-        board.addAt(gate2.first, gate2.second, 'o');
+        board.addAt(gate2.first, gate2.second, isWall(gate2) ? 'o' : ' ');
     }
 
     bool areGatesOnSameWall(int idx1, int idx2) {
@@ -102,37 +125,62 @@ private:
                (wallPositions[idx1].second == wallPositions[idx2].second);
     }
 
-    bool areGatesOnSameWall() {
-        // 같은 벽에 있는지 확인
-        return (gate1.first == gate2.first) || (gate1.second == gate2.second);
-    }
-
     std::pair<int, int> getExitPosition(const std::pair<int, int>& gate, const SnakePiece& head, DIRECTION& newDir) {
         int y = gate.first;
         int x = gate.second;
 
-        // 상단 벽
+        // 중간에 있을 때 나가는 방향 결정
+        if (y > 0 && y < maxY - 1 && x > 0 && x < maxX - 1) {
+            std::vector<std::pair<int, int>> directions = {
+                {y + 1, x}, // down
+                {y, x + 1}, // right
+                {y - 1, x}, // up
+                {y, x - 1}  // left
+            };
+
+            // 진입 방향과 일치하는 방향, 시계방향, 역시계방향, 반대 방향 순으로 검사
+            switch (head.getDirection()) {
+                case downD:
+                    directions = {{y + 1, x}, {y, x + 1}, {y, x - 1}, {y - 1, x}};
+                    break;
+                case upD:
+                    directions = {{y - 1, x}, {y, x - 1}, {y, x + 1}, {y + 1, x}};
+                    break;
+                case rightD:
+                    directions = {{y, x + 1}, {y - 1, x}, {y + 1, x}, {y, x - 1}};
+                    break;
+                case leftD:
+                    directions = {{y, x - 1}, {y + 1, x}, {y - 1, x}, {y, x + 1}};
+                    break;
+            }
+
+            for (const auto& dir : directions) {
+                if (dir.first >= 0 && dir.first < maxY && dir.second >= 0 && dir.second < maxX &&
+                    !isWall(dir)) {
+                    newDir = getNewDirection(head.getDirection(), dir, {y, x});
+                    return dir;
+                }
+            }
+        }
+
+        // 가장자리에 있을 때 기존 로직 유지
         if (y == 0) {
             newDir = downD;
             return { y + 1, x };
         }
-        // 하단 벽
         if (y == maxY - 1) {
             newDir = upD;
             return { y - 1, x };
         }
-        // 좌측 벽
         if (x == 0) {
             newDir = rightD;
             return { y, x + 1 };
         }
-        // 우측 벽
         if (x == maxX - 1) {
             newDir = leftD;
             return { y, x - 1 };
         }
 
-        // 맵 가장자리 벽이 아닌 경우, 들어간 방향으로 나옴
         newDir = head.getDirection();
         switch (newDir) {
             case downD: return { y + 1, x };
@@ -143,5 +191,23 @@ private:
 
         return { -1, -1 };
     }
-};
 
+    bool isWall(const std::pair<int, int>& position) {
+        return std::any_of(wallPositions.begin(), wallPositions.end(),
+                           [&position](const std::pair<int, int>& wallPos) {
+                               return wallPos == position;
+                           });
+    }
+
+    DIRECTION getNewDirection(DIRECTION currentDir, std::pair<int, int> newPos, std::pair<int, int> oldPos) {
+        int yDiff = newPos.first - oldPos.first;
+        int xDiff = newPos.second - oldPos.second;
+
+        if (yDiff == 1) return downD;
+        if (yDiff == -1) return upD;
+        if (xDiff == 1) return rightD;
+        if (xDiff == -1) return leftD;
+
+        return currentDir;
+    }
+};
