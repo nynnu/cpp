@@ -26,9 +26,14 @@ public:
 
         while (currentStage <= 4) {
             try {
+                missionCompleted = false;  // 미션 완료 상태 초기화
                 Map stageMap(currentStage);
                 gameWindow = newwin(stageMap.mapY, stageMap.mapX, 0, 0); 
-                drawGame(stageMap, gateSpawnTime, missionCompleted);
+                
+                while (!missionCompleted) {
+                    drawGame(stageMap, gateSpawnTime, missionCompleted);
+                }
+
                 delwin(gameWindow);
 
                 if (missionCompleted) {
@@ -57,12 +62,14 @@ public:
 
             if (snakeGame.missionAchieved()) {
                 missionCompleted = true;
-                break;
+                return;
             }
         }
 
-        if (snakeGame.over() && !snakeGame.missionAchieved()) {
+        if (snakeGame.over()) {
             snakeGame.displayGameOver();  // 게임 오버 메시지를 표시
+            nodelay(gameWindow, FALSE);  // 입력을 기다리도록 설정
+            wgetch(gameWindow);  // 사용자 입력 대기
         }
     }
 
