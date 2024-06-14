@@ -9,6 +9,7 @@
 #include <iostream>
 #include "Item.hpp"
 #include "Map.hpp"
+#include <random>
 
 // Game 클래스는 게임의 전반적인 로직과 상태 관리
 class Game {
@@ -25,6 +26,7 @@ public:
         gameOver = false;
         srand(time(NULL)); 
         initializeBoardWithMap();
+        randomMission();
     }
 
     // 뱀 초기화 함수
@@ -35,6 +37,24 @@ public:
     // 게임 오버 상태 확인 함수
     bool over() const {
         return gameOver;
+    }
+
+    void randomMission() {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        
+        std::uniform_int_distribution<> dist(1, 2);
+
+        snakeM = dist(gen);
+        appleM = dist(gen);
+        poisonM = dist(gen);
+        gateM = dist(gen);
+    }
+
+    void missionComplete() {
+        if(appleC >= appleM) appleSF = 'O';
+        if(poisonC >= poisonM) poisonSF = 'O';
+        if(gateC >= gateM) gateSF = 'O';
     }
 
     // 사용자 입력 처리 함수.
@@ -111,6 +131,8 @@ public:
             }
 
             board.scoreUpdate(snakeC, maxSnakeC, appleC, poisonC, gateC);
+            missionComplete();
+            board.missionUpdate(snakeSF, appleSF, poisonSF, gateSF, snakeM, appleM, poisonM, gateM);
             itemManager.updateItems(board);  // 아이템을 주기적으로 갱신
             itemManager.drawItems(board);
 
@@ -143,6 +165,8 @@ private:
     ItemManager itemManager;  
     Map& map;  
     int snakeC{3}, maxSnakeC{10}, appleC{0}, poisonC{0}, gateC{0};
+    char snakeSF{'O'}, appleSF{'X'}, poisonSF{'X'}, gateSF{'X'};
+    int snakeM{0}, appleM{0}, poisonM{0}, gateM{0};
 
     // 맵을 초기화하고 뱀을 맵에 배치하는 함수
     void initializeBoardWithMap() {

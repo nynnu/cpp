@@ -15,8 +15,8 @@ public:
         wtimeout(board_win, speed);
         keypad(board_win, true);
         clear();
-        ScoreBoard(snakeC, maxSnakeC,0,0,0);
-        missionBoard();
+        ScoreBoard(0, 0, 0, 0, 0);
+        missionBoard('O','X','X','X', 0, 0, 0, 0);
         refresh();
     }
 
@@ -56,6 +56,10 @@ public:
         ScoreBoard(snakeC, maxSnakeC, appleC, poisonC, gateC);  // scoreBoard update
     }
 
+    void missionUpdate(char snakeSF, char appleSF, char poisonSF, char gateSF, char snakeM, char appleM, char poisonM, char gateM) {
+        missionBoard(snakeSF, appleSF, poisonSF, gateSF, snakeM, appleM, poisonM, gateM);
+    }
+
     WINDOW* getBoardWin() const {
         return board_win;
     }
@@ -73,11 +77,15 @@ public:
         wrefresh(score_win);
     }
 
-    void missionBoard() {
+    void missionBoard(char snakeSF, char appleSF, char poisonSF, char gateSF, char snakeM, char appleM, char poisonM, char gateM) {
         wmove(mission_win, 0, 0);
         wborder(mission_win, '|','|','-','-','o','o','o','o');
 
         mvwprintw(mission_win, 1, 3, "MISSION BOARD");
+        mvwprintw(mission_win, 3, 3, "B : %d (%c)", snakeM, snakeSF);
+        mvwprintw(mission_win, 4, 3, "+ : %d (%c)", appleM ,appleSF);
+        mvwprintw(mission_win, 5, 3, "- : %d (%c)", poisonM, poisonSF);
+        mvwprintw(mission_win, 6, 3, "G : %d (%c)", gateM, gateSF);
 
         wrefresh(mission_win);
     }
@@ -87,4 +95,6 @@ private:
     WINDOW *score_win = newwin(11, 20, 0, 24);
     WINDOW *mission_win = newwin(11, 20, 11, 24);
     int speed, snakeC{0}, maxSnakeC{0}, appleC{0}, poisonC{0}, gateC{0};
+    int snakeM{0}, appleM{0}, poisonM{0}, gateM{0};
+    char snakeSF{'O'}, appleSF{'X'}, poisonSF{'X'}, gateSF{'X'};
 };
