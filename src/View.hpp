@@ -20,18 +20,20 @@ public:
         endwin();
     }
 
-    void draw(Map& map) {
+    void draw(Map& map, int gateSpawnTime) {
         gameWindow = newwin(map.mapY, map.mapX, 0, 0); 
         drawMap(map);
-        drawGame(map);
+        drawGame(map, gateSpawnTime);
     }
 
     void drawMap(Map& map) {
         for (int i = 0; i < map.mapY; ++i) {
             for (int j = 0; j < map.mapX; ++j) {
                 int number = map.getValue(i, j);
-                if (number == 1 || number == 2) {  // 벽 표시
+                if (number == 1) {  // 일반 벽 표시
                     mvwprintw(gameWindow, i, j, "o");
+                } else if (number == 2) {  // immune wall 표시
+                    mvwprintw(gameWindow, i, j, "O");
                 } else if (number == 0) {  // 빈 공간 표시
                     mvwprintw(gameWindow, i, j, " ");
                 } else if (number == 4) {  // 뱀 머리 표시
@@ -44,8 +46,8 @@ public:
         wrefresh(gameWindow);  
     }
 
-    void drawGame(Map& map) {
-        Game snakeGame(map.mapY, map.mapX, 200, gameWindow, map);  
+    void drawGame(Map& map, int gateSpawnTime) {
+        Game snakeGame(map.mapY, map.mapX, 200, gameWindow, map, gateSpawnTime);  
 
         while (!snakeGame.over()) {
             snakeGame.input();

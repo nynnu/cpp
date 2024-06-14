@@ -4,18 +4,18 @@
 #include <ncurses.h>
 #include "Snake.hpp"
 #include "Board.hpp"
-#include <time.h>
-#include <stdlib.h>
+#include "Gate.hpp"
+#include <ctime>
+#include <cstdlib>
 #include <iostream>
 #include "Item.hpp"
 #include "Map.hpp"
 
-// Game 클래스는 게임의 전반적인 로직과 상태 관리
 class Game {
 public:
-    // 생성자: 게임 보드, 뱀, 아이템 관리자, 맵 초기화
-    Game(int height, int width, int speed, WINDOW* game, Map& map)
-        : board(height, width, speed, game), snake(), itemManager(height, width), map(map) {
+    // 생성자: 게임 보드, 뱀, 아이템 관리자, 게이트, 맵 초기화
+    Game(int height, int width, int speed, WINDOW* game, Map& map, int gateSpawnTime)
+        : board(height, width, speed, game), snake(), itemManager(height, width), gate(height, width, gateSpawnTime), map(map) {
         initialize();
     }
 
@@ -25,6 +25,7 @@ public:
         gameOver = false;
         srand(time(NULL)); 
         initializeBoardWithMap();
+        gate.initialize(map, board);
     }
 
     // 뱀 초기화 함수
@@ -42,27 +43,19 @@ public:
         chtype input = board.getInput();
         switch (input) {
             case KEY_UP:
-                if (!snake.canChangeDirection(upD)) {
-                    gameOver = true; // 반대 방향으로 이동하려 할 때 게임 오버
-                }
+                if (!snake.canChangeDirection(upD)) gameOver = true; // 반대 방향으로 이동하려 할 때 게임 오버
                 if (snake.getDirection() != downD) snake.setDirection(upD);
                 break;
             case KEY_DOWN:
-                if (!snake.canChangeDirection(downD)) {
-                    gameOver = true; // 반대 방향으로 이동하려 할 때 게임 오버
-                }
+                if (!snake.canChangeDirection(downD)) gameOver = true; // 반대 방향으로 이동하려 할 때 게임 오버
                 if (snake.getDirection() != upD) snake.setDirection(downD);
                 break;
             case KEY_LEFT:
-                if (!snake.canChangeDirection(leftD)) {
-                    gameOver = true; // 반대 방향으로 이동하려 할 때 게임 오버
-                }
+                if (!snake.canChangeDirection(leftD)) gameOver = true; // 반대 방향으로 이동하려 할 때 게임 오버
                 if (snake.getDirection() != rightD) snake.setDirection(leftD);
                 break;
             case KEY_RIGHT:
-                if (!snake.canChangeDirection(rightD)) {
-                    gameOver = true; // 반대 방향으로 이동하려 할 때 게임 오버
-                }
+                if (!snake.canChangeDirection(rightD)) gameOver = true; // 반대 방향으로 이동하려 할 때 게임 오버
                 if (snake.getDirection() != leftD) snake.setDirection(rightD);
                 break;
             default:
@@ -74,6 +67,8 @@ public:
     void update() {
         SnakePiece next = snake.nextHead();  // 뱀의 다음 머리 위치 계산
         chtype ch = board.getChar(next.getY(), next.getX());
+
+        gate.update(board); // 게이트 상태 갱신
 
         // 뱀이 자신의 몸통과 충돌하는지 확인
         if (ch == '#') {
@@ -95,15 +90,21 @@ public:
                     snake.removePiece();
                     itemManager.removeItemAt(next.getY(), next.getX());  // 아이템 제거
                     board.addEmpty(next);  // 아이템 제거 후 해당 위치를 지우기 위해 추가
-                    if (snake.getLength() < 3) {
-                        gameOver = true;  // 몸 길이가 3보다 작아지면 게임 오버
-                    }
+                    if (snake.getLength() < 3) gameOver = true;  // 몸 길이가 3보다 작아지면 게임 오버
                 } else {
                     gameOver = true;
                 }
             // 뱀이 벽이나 자기 자신과 충돌한 경우
             } else if (ch == 'o' || ch == '@') {
                 gameOver = true;
+            } else if (ch == 'G') {
+                DIRECTION newDirection;
+                auto exitPos = gate.getNextPosition(next, newDirection);
+                if (exitPos.first != -1 && exitPos.second != -1) {
+                    snake.setDirection(newDirection);
+                    next = SnakePiece(exitPos.first, exitPos.second, '@');
+                    addSnakePiece(next);
+                }
             }
 
             itemManager.updateItems(board);  // 아이템을 주기적으로 갱신
@@ -136,6 +137,7 @@ private:
     Snake snake;  
     bool gameOver;  // 게임 오버 상태
     ItemManager itemManager;  
+    Gate gate;
     Map& map;  
 
     // 맵을 초기화하고 뱀을 맵에 배치하는 함수
@@ -143,8 +145,10 @@ private:
         for (int y = 0; y < map.mapY; ++y) {
             for (int x = 0; x < map.mapX; ++x) {
                 int value = map.getValue(y, x);
-                if (value == 1 || value == 2) {
+                if (value == 1) {
                     board.addAt(y, x, 'o');
+                } else if (value == 2) {
+                    board.addAt(y, x, 'O'); // Immune wall 표시
                 } else if (value == 3) {
                     SnakePiece body(y, x, '#');
                     snake.addPiece(body);
@@ -158,7 +162,7 @@ private:
         }
     }
 
-    // 뱀의 새로운 머리를 추가하고 꼬리를 제거하는 함수
+    
     void addSnakePiece(SnakePiece next) {
         if (snake.getLength() > 0) {
             SnakePiece head = snake.head();
