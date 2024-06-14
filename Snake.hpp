@@ -1,3 +1,5 @@
+//Snake.hpp
+
 #pragma once
 #include <ncurses.h>
 #include <queue>
@@ -9,33 +11,20 @@ enum DIRECTION {
 
 class SnakePiece {
 public:
-    SnakePiece(int y, int x, chtype ch = '#') {
-        this->y = y;
-        this->x = x;
-        this->icon = ch;
-    }
-    
-    int getX() {
-        return x;
-    }
+    SnakePiece(int y, int x, chtype ch = '#') : y(y), x(x), icon(ch) {}
 
-    int getY(){
-        return y;
-    }
+    int getX() const { return x; }
+    int getY() const { return y; }
+    chtype getI() const { return icon; }
 
-    chtype getI() {
-        return icon;
-    }
 private:
     int x, y;
-    chtype icon = ' ';
+    chtype icon;
 };
 
 class Snake {
 public:
-    Snake() {
-        curDirection = downD;
-    }
+    Snake() : curDirection(downD) {}
 
     void addPiece(SnakePiece piece) {
         prevPiece.push(piece);
@@ -45,36 +34,48 @@ public:
         prevPiece.pop();
     }
 
-    SnakePiece tail() { 
-        return prevPiece.front();       // 잘려나가는 부분 : 꼬리 = 빠지는 부분은 queue 의 앞부분
-    }
-    
-    SnakePiece head() {
-        return prevPiece.back();        // 꼬리와 동일한 방식
+    SnakePiece tail() const {
+        return prevPiece.front();
     }
 
-    DIRECTION getDirection() {
+    SnakePiece head() const {
+        return prevPiece.back();
+    }
+
+    int getLength() const {
+        return prevPiece.size();
+    }
+
+    DIRECTION getDirection() const {
         return curDirection;
     }
 
-    void setDirection(DIRECTION D) {
-        curDirection = D;
+    // 진행방향의 반대방향으로 이동할 수 없도록 설정
+    bool canChangeDirection(DIRECTION newDirection) const {
+        return curDirection != -newDirection;
     }
 
-    SnakePiece nextHead()       // 다음 머리를 불러올 함수
-	{
-		int row = head().getY();
-		int col = head().getX();
-		
-        if(curDirection == downD) row++;
-        else if(curDirection == upD) row--;
-        else if(curDirection == rightD) col++;
-        else if(curDirection == leftD) col--;
+    void setDirection(DIRECTION D) {
+        if (canChangeDirection(D)) {
+            curDirection = D;
+        }
+    }
 
-		return SnakePiece(row, col);        // 다음 헤드의 정보 전달
-	}
+    SnakePiece nextHead() const {
+        int row = head().getY();
+        int col = head().getX();
+
+        switch (curDirection) {
+            case downD: row++; break;
+            case upD: row--; break;
+            case rightD: col++; break;
+            case leftD: col--; break;
+        }
+
+        return SnakePiece(row, col, '@');
+    }
+
 private:
-    queue<SnakePiece> prevPiece;   
-    DIRECTION curDirection;     // 현재 방향
-
+    queue<SnakePiece> prevPiece;
+    DIRECTION curDirection;
 };

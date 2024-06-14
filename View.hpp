@@ -1,3 +1,6 @@
+//View.hpp
+
+
 #pragma once
 #include <ncurses.h>
 #include "Board.hpp"
@@ -5,7 +8,7 @@
 #include "Snake.hpp"
 #include "Game.hpp"
 
-class View{
+class View {
 public:
     View() {
         initscr();
@@ -17,45 +20,43 @@ public:
         endwin();
     }
 
-    void draw(Map map) {
-        drawMap(map);   
-        drawGame();
+    void draw(Map& map) {
+        gameWindow = newwin(map.mapY, map.mapX, 0, 0); 
+        drawMap(map);
+        drawGame(map);
     }
 
-    void drawMap(Map map) {
-        game = newwin(22, 65, 6, 2);        // window to draw map
-        refresh();
-        
-        for(int i = 0; i < map.mapY; i++) {     // draw map onto window
-            for (int j = 0; j < map.mapX; j++){
+    void drawMap(Map& map) {
+        for (int i = 0; i < map.mapY; ++i) {
+            for (int j = 0; j < map.mapX; ++j) {
                 int number = map.getValue(i, j);
-                if (number == 1 || number == 2) {
-                    mvwprintw(game, i, j * 3, "o");
-                }
-                if (number == 3 || number == 4) {
-                    mvwprintw(game, i, j * 3, "#");
+                if (number == 1 || number == 2) {  // 벽 표시
+                    mvwprintw(gameWindow, i, j, "o");
+                } else if (number == 0) {  // 빈 공간 표시
+                    mvwprintw(gameWindow, i, j, " ");
+                } else if (number == 4) {  // 뱀 머리 표시
+                    mvwprintw(gameWindow, i, j, "@");
+                } else if (number == 3) {  // 뱀 몸통 표시
+                    mvwprintw(gameWindow, i, j, "#");
                 }
             }
         }
-        wrefresh(game);     // Apply Changes at window screen
+        wrefresh(gameWindow);  
     }
 
-    void drawGame() {
-	    refresh();	
-        
-    	Game SnakeGame(22, 65, 200, game);    
-        
-	    while(!SnakeGame.over())
-	    {
-		    SnakeGame.input();
+    void drawGame(Map& map) {
+        Game snakeGame(map.mapY, map.mapX, 200, gameWindow, map);  
 
-		    SnakeGame.update();
+        while (!snakeGame.over()) {
+            snakeGame.input();
+            snakeGame.update();
+            snakeGame.reDraw();
+        }
 
-		    SnakeGame.reDraw();
-	    }
+        // 게임 종료 메시지
+        snakeGame.displayGameOver();  // 게임 오버 메시지를 표시
     }
 
 private:
-    WINDOW *game;
-    WINDOW *score;
+    WINDOW* gameWindow;
 };
