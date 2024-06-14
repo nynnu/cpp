@@ -1,5 +1,4 @@
 // View.hpp
-// View.hpp
 
 #pragma once
 #include <ncurses.h>
@@ -25,9 +24,9 @@ public:
         drawStartScreen();
 
         int currentStage = 1;
-        bool missionCompleted = false;
 
         while (currentStage <= 4) {
+            bool missionCompleted = false;  // Reset missionCompleted for each stage
             try {
                 Map stageMap(currentStage);
                 gameWindow = newwin(stageMap.mapY, stageMap.mapX, 0, 0); 
@@ -40,6 +39,9 @@ public:
                         displayCongratulations();
                         break;
                     }
+                } else {
+                    // If mission not completed, stay on the same stage
+                    continue;
                 }
             } catch (const std::exception &e) {
                 mvprintw(0, 0, "Error: %s", e.what());
@@ -57,6 +59,7 @@ public:
         refresh();
         getch();  // 사용자 입력 대기
         clear();
+        refresh();
     }
 
     void drawGame(Map& map, int gateSpawnTime, bool& missionCompleted) {
@@ -90,4 +93,3 @@ public:
 private:
     WINDOW* gameWindow;
 };
-

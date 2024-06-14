@@ -23,7 +23,7 @@ public:
         keypad(board_win, true);
         clear();
         ScoreBoard(0, 0, 0, 0, 0);
-        missionBoard('O', 'X', 'X', 'X', 0, 0, 0, 0);
+        missionBoard('X', 'X', 'X', 'X', 0, 0, 0, 0);  // 초기 상태를 'X'로 설정
         refresh();
     }
 
@@ -104,5 +104,5 @@ private:
     int speed;
     int snakeC{0}, maxSnakeC{0}, appleC{0}, poisonC{0}, gateC{0};
     int snakeM{0}, appleM{0}, poisonM{0}, gateM{0};
-    char snakeSF{'O'}, appleSF{'X'}, poisonSF{'X'}, gateSF{'X'};
+    char snakeSF{'X'}, appleSF{'X'}, poisonSF{'X'}, gateSF{'X'};
 };
