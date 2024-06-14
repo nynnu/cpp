@@ -1,5 +1,6 @@
 //View.hpp
 
+
 #pragma once
 #include <ncurses.h>
 #include "Board.hpp"
@@ -44,7 +45,7 @@ public:
     }
 
     void drawGame(Map& map) {
-        Game snakeGame(map.mapY, map.mapX, 200, gameWindow);
+        Game snakeGame(map.mapY, map.mapX, 200, gameWindow, map);  // map 객체를 전달
 
         // 뱀 초기 위치 설정
         std::vector<int> headPos = map.getPos(4);

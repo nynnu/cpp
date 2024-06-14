@@ -1,5 +1,3 @@
-//Game.hpp
-
 #pragma once
 #include <ncurses.h>
 #include "Snake.hpp"
@@ -8,11 +6,12 @@
 #include <stdlib.h>
 #include <iostream>
 #include "Item.hpp"
+#include "Map.hpp"
 
 class Game {
 public:
-    Game(int height, int width, int speed, WINDOW* game)
-        : board(height, width, speed, game), itemManager(height, width) {
+    Game(int height, int width, int speed, WINDOW* game, Map& map)
+        : board(height, width, speed, game), itemManager(height, width), map(map) {
         initialize();
     }
 
@@ -20,6 +19,7 @@ public:
         board.initialize();
         gameOver = false;
         srand(time(NULL)); // 난수 생성기 시드 초기화
+        initializeBoardWithMap();
     }
 
     void initializeItems() {
@@ -98,6 +98,26 @@ private:
     Snake snake;
     bool gameOver;
     ItemManager itemManager;
+    Map& map;  // 맵 참조 추가
+
+    void initializeBoardWithMap() {
+        for (int y = 0; y < map.mapY; ++y) {
+            for (int x = 0; x < map.mapX; ++x) {
+                int value = map.getValue(y, x);
+                if (value == 1 || value == 2) {
+                    board.addAt(y, x, 'o');  // 벽 표시
+                } else if (value == 3) {
+                    SnakePiece body(y, x, '#');
+                    snake.addPiece(body);
+                    board.add(body);
+                } else if (value == 4) {
+                    SnakePiece head(y, x, '@');
+                    snake.addPiece(head);
+                    board.add(head);
+                }
+            }
+        }
+    }
 
     void addSnakePiece(SnakePiece next) {
         if (snake.getLength() > 0) {

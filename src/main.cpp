@@ -1,6 +1,5 @@
 //main.cpp
 
-
 #include "Map.hpp"
 #include "View.hpp"
 #include "Game.hpp"
