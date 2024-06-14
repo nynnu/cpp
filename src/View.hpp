@@ -1,4 +1,5 @@
 // View.hpp
+// View.hpp
 
 #pragma once
 #include <ncurses.h>
@@ -21,19 +22,16 @@ public:
     }
 
     void draw(int gateSpawnTime) {
+        drawStartScreen();
+
         int currentStage = 1;
         bool missionCompleted = false;
 
         while (currentStage <= 4) {
             try {
-                missionCompleted = false;  // 미션 완료 상태 초기화
                 Map stageMap(currentStage);
                 gameWindow = newwin(stageMap.mapY, stageMap.mapX, 0, 0); 
-                
-                while (!missionCompleted) {
-                    drawGame(stageMap, gateSpawnTime, missionCompleted);
-                }
-
+                drawGame(stageMap, gateSpawnTime, missionCompleted);
                 delwin(gameWindow);
 
                 if (missionCompleted) {
@@ -52,6 +50,15 @@ public:
         }
     }
 
+    void drawStartScreen() {
+        clear();
+        mvprintw(LINES / 2 - 1, (COLS - 11) / 2, "SNAKE GAME");
+        mvprintw(LINES / 2, (COLS - 21) / 2, "Press any key to start");
+        refresh();
+        getch();  // 사용자 입력 대기
+        clear();
+    }
+
     void drawGame(Map& map, int gateSpawnTime, bool& missionCompleted) {
         Game snakeGame(map.mapY, map.mapX, 200, gameWindow, map, gateSpawnTime);  
 
@@ -62,20 +69,18 @@ public:
 
             if (snakeGame.missionAchieved()) {
                 missionCompleted = true;
-                return;
+                break;
             }
         }
 
-        if (snakeGame.over()) {
+        if (snakeGame.over() && !snakeGame.missionAchieved()) {
             snakeGame.displayGameOver();  // 게임 오버 메시지를 표시
-            nodelay(gameWindow, FALSE);  // 입력을 기다리도록 설정
-            wgetch(gameWindow);  // 사용자 입력 대기
         }
     }
 
     void displayCongratulations() {
         clear();
-        mvprintw(LINES / 2, (COLS - 30) / 2, "CONGRATULATIONS! You've completed all stages!");
+        mvprintw(LINES / 2, (COLS - 30) / 2, "CONGRATULATIONS! You completed all stages!");
         mvprintw(LINES / 2 + 1, (COLS - 30) / 2, "Press any key to exit...");
         refresh();
         nodelay(stdscr, FALSE);  // 입력을 기다리도록 설정
@@ -85,3 +90,4 @@ public:
 private:
     WINDOW* gameWindow;
 };
+
