@@ -24,19 +24,20 @@ public:
         int currentStage = 1;
         bool missionCompleted = false;
 
-        while (currentStage <= 4 && !missionCompleted) {
+        while (currentStage <= 4) {
             try {
                 Map stageMap(currentStage);
                 gameWindow = newwin(stageMap.mapY, stageMap.mapX, 0, 0); 
-                Game snakeGame = drawGame(stageMap, gateSpawnTime);
-
-                if (snakeGame.missionAchieved()) {
-                    currentStage++;
-                    missionCompleted = (currentStage > 4);
-                }
-
+                drawGame(stageMap, gateSpawnTime, missionCompleted);
                 delwin(gameWindow);
 
+                if (missionCompleted) {
+                    currentStage++;
+                    if (currentStage > 4) {
+                        displayCongratulations();
+                        break;
+                    }
+                }
             } catch (const std::exception &e) {
                 mvprintw(0, 0, "Error: %s", e.what());
                 refresh();
@@ -44,13 +45,9 @@ public:
                 break;
             }
         }
-
-        if (missionCompleted) {
-            displayCongratulations();
-        }
     }
 
-    Game drawGame(Map& map, int gateSpawnTime) {
+    void drawGame(Map& map, int gateSpawnTime, bool& missionCompleted) {
         Game snakeGame(map.mapY, map.mapX, 200, gameWindow, map, gateSpawnTime);  
 
         while (!snakeGame.over()) {
@@ -59,6 +56,7 @@ public:
             snakeGame.reDraw();
 
             if (snakeGame.missionAchieved()) {
+                missionCompleted = true;
                 break;
             }
         }
@@ -66,15 +64,15 @@ public:
         if (snakeGame.over() && !snakeGame.missionAchieved()) {
             snakeGame.displayGameOver();  // 게임 오버 메시지를 표시
         }
-
-        return snakeGame;
     }
 
     void displayCongratulations() {
-        mvwprintw(gameWindow, 10, 10, "CONGRATULATIONS! You've completed all stages!");
-        wrefresh(gameWindow);
-        nodelay(gameWindow, FALSE);  // 입력을 기다리도록 설정
-        wgetch(gameWindow);  // 사용자 입력 대기
+        clear();
+        mvprintw(LINES / 2, (COLS - 30) / 2, "CONGRATULATIONS! You've completed all stages!");
+        mvprintw(LINES / 2 + 1, (COLS - 30) / 2, "Press any key to exit...");
+        refresh();
+        nodelay(stdscr, FALSE);  // 입력을 기다리도록 설정
+        getch();  // 사용자 입력 대기
     }
 
 private:
