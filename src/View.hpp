@@ -1,6 +1,5 @@
 //View.hpp
 
-
 #pragma once
 #include <ncurses.h>
 #include "Board.hpp"
@@ -47,9 +46,6 @@ public:
     void drawGame(Map& map) {
         Game snakeGame(map.mapY, map.mapX, 200, gameWindow, map);  // map 객체를 전달
 
-        // 아이템 초기 위치 설정
-        snakeGame.initializeItems();
-
         while (!snakeGame.over()) {
             snakeGame.input();
             snakeGame.update();
@@ -57,9 +53,7 @@ public:
         }
 
         // 게임 종료 메시지
-        mvprintw(map.mapY + 2, 0, "Game Over! Press any key to exit.");
-        refresh();
-        getch();
+        snakeGame.displayGameOver();  // 게임 오버 메시지를 표시
     }
 
 private:

@@ -22,20 +22,11 @@ public:
         gameOver = false;
         srand(time(NULL)); // 난수 생성기 시드 초기화
         initializeBoardWithMap();
-        initializeItems();  // 게임 시작 시 아이템 초기화
-    }
-
-    void initializeItems() {
-        itemManager.spawnItems();
-        itemManager.drawItems(board);
     }
 
     void initializeSnake(int startY, int startX) {
         snake.setDirection(downD);
-
-
     }
-
 
     bool over() const {
         return gameOver;
@@ -70,7 +61,6 @@ public:
             if (ch == 'A') {
                 snake.addPiece(next);  // 뱀 몸통 추가
                 itemManager.removeItemAt(next.getY(), next.getX());  // 아이템 제거
-                itemManager.spawnItems();
             }
         } else if (ch == 'P') {
             if (snake.getLength() > 1) {
@@ -78,6 +68,7 @@ public:
                 board.addEmpty(tail);
                 snake.removePiece();
                 itemManager.removeItemAt(next.getY(), next.getX());  // 아이템 제거
+                board.addEmpty(next);  // 아이템 제거 후 해당 위치를 지우기 위해 추가
                 if (snake.getLength() < 3) {
                     gameOver = true;  // 몸 길이가 3보다 작아지면 게임 오버
                 }
@@ -88,11 +79,25 @@ public:
             gameOver = true;
         }
 
+        itemManager.updateItems(board);  // 아이템을 주기적으로 갱신
         itemManager.drawItems(board);
+
+        if (gameOver) {
+            displayGameOver();
+        }
     }
 
     void reDraw() {
         board.refresh();
+    }
+
+    void displayGameOver() {  // displayGameOver 메서드를 public으로 이동
+        WINDOW* win = board.getBoardWin();
+        mvwprintw(win, map.mapY / 2, (map.mapX / 2) - 5, "GAME OVER!");
+        mvwprintw(win, (map.mapY / 2) + 1, (map.mapX / 2) - 10, "Press any key to exit...");
+        wrefresh(win);
+        nodelay(win, FALSE);  // 입력을 기다리도록 설정
+        wgetch(win);  // 사용자 입력 대기
     }
 
 private:
@@ -100,14 +105,14 @@ private:
     Snake snake;
     bool gameOver;
     ItemManager itemManager;
-    Map& map;  // 맵 참조 추가
+    Map& map;
 
     void initializeBoardWithMap() {
         for (int y = 0; y < map.mapY; ++y) {
             for (int x = 0; x < map.mapX; ++x) {
                 int value = map.getValue(y, x);
                 if (value == 1 || value == 2) {
-                    board.addAt(y, x, 'o');  // 벽 표시
+                    board.addAt(y, x, 'o');
                 } else if (value == 3) {
                     SnakePiece body(y, x, '#');
                     snake.addPiece(body);
@@ -120,7 +125,6 @@ private:
             }
         }
     }
-
 
     void addSnakePiece(SnakePiece next) {
         if (snake.getLength() > 0) {

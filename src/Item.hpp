@@ -1,6 +1,5 @@
 //Item.hpp
 
-
 #pragma once
 #include <ncurses.h>
 #include <stdlib.h>
@@ -17,15 +16,16 @@ public:
 
     int getY() const { return y; }
     int getX() const { return x; }
-    void setX(int newX) { x = newX; }
     void setY(int newY) { y = newY; }
+    void setX(int newX) { x = newX; }
     chtype getIcon() const { return icon; }
     time_t getSpawnTime() const { return spawnTime; }
     int getDuration() const { return duration; }
 
     void resetSpawnTime() { spawnTime = time(NULL); }
+    virtual void respawn(int maxY, int maxX) = 0; // 순수 가상 함수로 정의
 
-protected:
+private:
     int y, x;
     chtype icon;
     int duration;  // 지속 시간 (초 단위)
@@ -37,7 +37,7 @@ public:
     Apple(int maxY, int maxX)
         : Item(rand() % (maxY - 2) + 1, rand() % (maxX - 2) + 1, 'A', 5) {}
 
-    void spawn(int maxY, int maxX) {
+    void respawn(int maxY, int maxX) override {
         setY(rand() % (maxY - 2) + 1);
         setX(rand() % (maxX - 2) + 1);
         resetSpawnTime();
@@ -49,7 +49,7 @@ public:
     Poison(int maxY, int maxX)
         : Item(rand() % (maxY - 2) + 1, rand() % (maxX - 2) + 1, 'P', 5) {}
 
-    void spawn(int maxY, int maxX) {
+    void respawn(int maxY, int maxX) override {
         setY(rand() % (maxY - 2) + 1);
         setX(rand() % (maxX - 2) + 1);
         resetSpawnTime();
@@ -60,8 +60,7 @@ class ItemManager {
 public:
     ItemManager(int maxY, int maxX) : maxY(maxY), maxX(maxX) {
         srand(time(NULL)); // Seed for randomization
-        items.push_back(new Apple(maxY, maxX));
-        items.push_back(new Poison(maxY, maxX));
+        spawnInitialItems();
     }
 
     ~ItemManager() {
@@ -70,34 +69,33 @@ public:
         }
     }
 
-    void spawnItems() {
-        removeExpiredItems();
-        if (items.size() < 3) {
-            items.push_back(new Apple(maxY, maxX));
-            items.push_back(new Poison(maxY, maxX));
+    void spawnInitialItems() {
+        addItem();
+    }
+
+    void updateItems(Board& board) {
+        time_t now = time(NULL);
+        for (auto& item : items) {
+            if (difftime(now, item->getSpawnTime()) > item->getDuration()) {
+                board.addEmpty(SnakePiece(item->getY(), item->getX(), ' ')); // 화면에서 아이템 제거
+                item->respawn(maxY, maxX); // 아이템 재생성
+            }
+        }
+        if (rand() % 100 < 10 && items.size() < 3) { // 10% 확률로 아이템 생성
+            addItem();
         }
     }
 
-    bool snakeAteApple(const Snake& snake) const {
-        for (const auto& item : items) {
-            if (item->getIcon() == 'A' &&
-                snake.head().getY() == item->getY() &&
-                snake.head().getX() == item->getX()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool snakeAtePoison(const Snake& snake) const {
-        for (const auto& item : items) {
-            if (item->getIcon() == 'P' &&
-                snake.head().getY() == item->getY() &&
-                snake.head().getX() == item->getX()) {
-                return true;
-            }
-        }
-        return false;
+    void removeItemAt(int y, int x) {
+        auto it = std::remove_if(items.begin(), items.end(),
+                                 [&](Item* item) {
+                                     if (item->getY() == y && item->getX() == x) {
+                                         delete item;
+                                         return true;
+                                     }
+                                     return false;
+                                 });
+        items.erase(it, items.end());
     }
 
     void drawItems(Board& board) const {
@@ -106,34 +104,29 @@ public:
         }
     }
 
-    void removeItemAt(int y, int x) {
-        items.erase(
-            std::remove_if(items.begin(), items.end(),
-                           [&](Item* item) {
-                               if (item->getY() == y && item->getX() == x) {
-                                   delete item;
-                                   return true;
-                               }
-                               return false;
-                           }),
-            items.end());
-    }
-
 private:
     std::vector<Item*> items;
     int maxY, maxX;
 
-    void removeExpiredItems() {
+    void removeExpiredItems(Board& board) {
         time_t now = time(NULL);
-        items.erase(
-            std::remove_if(items.begin(), items.end(),
-                           [now](Item* item) {
-                               if (difftime(now, item->getSpawnTime()) > item->getDuration()) {
-                                   delete item;
-                                   return true;
-                               }
-                               return false;
-                           }),
-            items.end());
+        auto it = std::remove_if(items.begin(), items.end(),
+                                 [&](Item* item) {
+                                     if (difftime(now, item->getSpawnTime()) > item->getDuration()) {
+                                         board.addEmpty(SnakePiece(item->getY(), item->getX(), ' '));
+                                         delete item;
+                                         return true;
+                                     }
+                                     return false;
+                                 });
+        items.erase(it, items.end());
+    }
+
+    void addItem() {
+        if (rand() % 2 == 0) {
+            items.push_back(new Apple(maxY, maxX));
+        } else {
+            items.push_back(new Poison(maxY, maxX));
+        }
     }
 };

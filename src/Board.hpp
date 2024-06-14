@@ -1,5 +1,4 @@
-//Board.hpp
-
+// Board.hpp
 #pragma once
 #include <ncurses.h>
 #include "Snake.hpp"
@@ -8,11 +7,11 @@ class Board {
 public:
     Board(int height, int width, int speed, WINDOW* game)
         : board_win(game), speed(speed) {
-        initialize(); // 생성자에서 초기화를 진행할 수 있도록 initialize() 함수를 호출합니다.
+        initialize();
     }
 
     void initialize() {
-        wtimeout(board_win, speed); // 생성자에서 wtimeout을 호출하여 초기화합니다.
+        wtimeout(board_win, speed);
         keypad(board_win, true);
         clear();
         refresh();
@@ -48,6 +47,10 @@ public:
 
     void refresh() {
         wrefresh(board_win);
+    }
+
+    WINDOW* getBoardWin() const {  // board_win을 접근할 수 있는 메서드 추가
+        return board_win;
     }
 
 private:
