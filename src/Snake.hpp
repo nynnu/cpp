@@ -1,4 +1,4 @@
-//Snake.hpp
+// Snake.hpp
 
 #pragma once
 #include <ncurses.h>

@@ -1,10 +1,11 @@
-//Map.hpp
+// Map.hpp
 
 #pragma once
 #include <iostream>
 #include <vector>
 #include <fstream>
 #include <string>
+#include <stdexcept>
 using namespace std;
 #include <ncurses.h>
 

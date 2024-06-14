@@ -1,4 +1,6 @@
 // Gate.hpp
+
+// Gate.hpp
 #pragma once
 #include <ncurses.h>
 #include <vector>

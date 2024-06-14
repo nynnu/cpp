@@ -1,5 +1,4 @@
-//View.hpp
-
+// View.hpp
 
 #pragma once
 #include <ncurses.h>
