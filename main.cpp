@@ -1,8 +1,8 @@
 //main.cpp
 
-#include "Map.hpp"
-#include "View.hpp"
-#include "Game.hpp"
+#include "Map.h"
+#include "View.h"
+#include "Game.h"
 
 int main() {
     View view;
