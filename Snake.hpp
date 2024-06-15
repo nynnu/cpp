@@ -1,4 +1,4 @@
-//Snake.hpp
+// Snake.hpp
 
 #pragma once
 #include <ncurses.h>
@@ -11,15 +11,19 @@ enum DIRECTION {
 
 class SnakePiece {
 public:
-    SnakePiece(int y, int x, chtype ch = '#') : y(y), x(x), icon(ch) {}
+    SnakePiece(int y, int x, chtype ch = '#') : y(y), x(x), icon(ch), direction(downD) {}
 
     int getX() const { return x; }
     int getY() const { return y; }
     chtype getI() const { return icon; }
+    DIRECTION getDirection() const { return direction; } // 새로운 메서드 추가
+
+    void setDirection(DIRECTION dir) { direction = dir; } // 방향 설정 메서드 추가
 
 private:
     int x, y;
     chtype icon;
+    DIRECTION direction; // 방향 필드 추가
 };
 
 class Snake {
@@ -27,6 +31,7 @@ public:
     Snake() : curDirection(downD) {}
 
     void addPiece(SnakePiece piece) {
+        piece.setDirection(curDirection); // 조각의 방향 설정
         prevPiece.push(piece);
     }
 
@@ -50,7 +55,6 @@ public:
         return curDirection;
     }
 
-    // 진행방향의 반대방향으로 이동할 수 없도록 설정
     bool canChangeDirection(DIRECTION newDirection) const {
         return curDirection != -newDirection;
     }
@@ -72,7 +76,9 @@ public:
             case leftD: col--; break;
         }
 
-        return SnakePiece(row, col, '@');
+        SnakePiece nextPiece(row, col, '@');
+        nextPiece.setDirection(curDirection); // 다음 조각의 방향 설정
+        return nextPiece;
     }
 
 private:

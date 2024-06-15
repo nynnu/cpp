@@ -1,11 +1,11 @@
-// game.hpp
-
+// Game.hpp
 #pragma once
 #include <ncurses.h>
 #include "Snake.hpp"
 #include "Board.hpp"
-#include <time.h>
-#include <stdlib.h>
+#include "Gate.hpp"
+#include <ctime>
+#include <cstdlib>
 #include <iostream>
 #include "Item.hpp"
 #include "Map.hpp"
@@ -14,9 +14,9 @@
 // Game 클래스는 게임의 전반적인 로직과 상태 관리
 class Game {
 public:
-    // 생성자: 게임 보드, 뱀, 아이템 관리자, 맵 초기화
-    Game(int height, int width, int speed, WINDOW* game, Map& map)
-        : board(height, width, speed, game), snake(), itemManager(height, width), map(map) {
+    // 생성자: 게임 보드, 뱀, 아이템 관리자, 게이트, 맵 초기화
+    Game(int height, int width, int speed, WINDOW* game, Map& map, int gateSpawnTime)
+        : board(height, width, speed, game), snake(), itemManager(height, width), gate(height, width, gateSpawnTime), map(map) {
         initialize();
     }
 
@@ -26,6 +26,7 @@ public:
         gameOver = false;
         srand(time(NULL)); 
         initializeBoardWithMap();
+        gate.initialize(map, board);
         randomMission();
     }
 
@@ -37,6 +38,10 @@ public:
     // 게임 오버 상태 확인 함수
     bool over() const {
         return gameOver;
+    }
+
+    bool missionAchieved() const {
+        return snakeSF == 'O' && appleSF == 'O' && poisonSF == 'O' && gateSF == 'O';
     }
 
     void randomMission() {
@@ -95,6 +100,8 @@ public:
         SnakePiece next = snake.nextHead();  // 뱀의 다음 머리 위치 계산
         chtype ch = board.getChar(next.getY(), next.getX());
 
+        gate.update(board); // 게이트 상태 갱신
+
         // 뱀이 자신의 몸통과 충돌하는지 확인
         if (ch == '#') {
             gameOver = true;
@@ -128,6 +135,15 @@ public:
             // 뱀이 벽이나 자기 자신과 충돌한 경우
             } else if (ch == 'o' || ch == '@') {
                 gameOver = true;
+            } else if (ch == 'G') {
+                DIRECTION newDirection;
+                auto exitPos = gate.getNextPosition(next, newDirection);
+                if (exitPos.first != -1 && exitPos.second != -1) {
+                    snake.setDirection(newDirection);
+                    next = SnakePiece(exitPos.first, exitPos.second, '@');
+                    addSnakePiece(next);
+                    ++gateC;
+                }
             }
 
             board.scoreUpdate(snakeC, maxSnakeC, appleC, poisonC, gateC);
@@ -163,6 +179,7 @@ private:
     Snake snake;  
     bool gameOver;  // 게임 오버 상태
     ItemManager itemManager;  
+    Gate gate;
     Map& map;  
     int snakeC{3}, maxSnakeC{10}, appleC{0}, poisonC{0}, gateC{0};
     char snakeSF{'O'}, appleSF{'X'}, poisonSF{'X'}, gateSF{'X'};
@@ -173,8 +190,10 @@ private:
         for (int y = 0; y < map.mapY; ++y) {
             for (int x = 0; x < map.mapX; ++x) {
                 int value = map.getValue(y, x);
-                if (value == 1 || value == 2) {
+                if (value == 1) {
                     board.addAt(y, x, 'o');
+                } else if (value == 2) {
+                    board.addAt(y, x, 'O'); // Immune wall 표시
                 } else if (value == 3) {
                     SnakePiece body(y, x, '#');
                     snake.addPiece(body);

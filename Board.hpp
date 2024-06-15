@@ -1,22 +1,28 @@
-
-// Board.hpp
 #pragma once
 #include <ncurses.h>
+#include <chrono>
 #include "Snake.hpp"
 
 class Board {
 public:
     Board(int height, int width, int speed, WINDOW* game)
-        : board_win(game), speed(speed) {
+        : board_win(game), speed(speed), score_win(nullptr), mission_win(nullptr), start_time(std::chrono::high_resolution_clock::now()) {
         initialize();
     }
 
+    ~Board() {
+        if (score_win) delwin(score_win);
+        if (mission_win) delwin(mission_win);
+    }
+
     void initialize() {
+        if (!score_win) score_win = newwin(11, 20, 0, 24);
+        if (!mission_win) mission_win = newwin(11, 20, 11, 24);
         wtimeout(board_win, speed);
         keypad(board_win, true);
         clear();
         ScoreBoard(0, 0, 0, 0, 0);
-        missionBoard('O','X','X','X', 0, 0, 0, 0);
+        missionBoard('X', 'X', 'X', 'X', 0, 0, 0, 0);  // 초기 상태를 'X'로 설정
         refresh();
     }
 
@@ -56,7 +62,7 @@ public:
         ScoreBoard(snakeC, maxSnakeC, appleC, poisonC, gateC);  // scoreBoard update
     }
 
-    void missionUpdate(char snakeSF, char appleSF, char poisonSF, char gateSF, char snakeM, char appleM, char poisonM, char gateM) {
+    void missionUpdate(char snakeSF, char appleSF, char poisonSF, char gateSF, int snakeM, int appleM, int poisonM, int gateM) {
         missionBoard(snakeSF, appleSF, poisonSF, gateSF, snakeM, appleM, poisonM, gateM);
     }
 
@@ -64,37 +70,44 @@ public:
         return board_win;
     }
 
+private:
     void ScoreBoard(int snakeC, int maxSnakeC, int appleC, int poisonC, int gateC) {
         wmove(score_win, 0, 0);
-        wborder(score_win, '|','|','-','-','o','o','o','o');
+        wborder(score_win, '|', '|', '-', '-', 'o', 'o', 'o', 'o');
         
         mvwprintw(score_win, 1, 4, "SCORE BOARD");
         mvwprintw(score_win, 3, 3, "B : %d / %d", snakeC, maxSnakeC);
         mvwprintw(score_win, 4, 3, "+ : %d", appleC);
         mvwprintw(score_win, 5, 3, "- : %d", poisonC);
-        mvwprintw(score_win, 6, 3, "G : %d ", 0);
+        mvwprintw(score_win, 6, 3, "G : %d", gateC);
+
+        auto current_time = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed = current_time - start_time;
+        mvwprintw(score_win, 7, 3, "T : %.2f", elapsed.count());
 
         wrefresh(score_win);
     }
 
-    void missionBoard(char snakeSF, char appleSF, char poisonSF, char gateSF, char snakeM, char appleM, char poisonM, char gateM) {
+    void missionBoard(char snakeSF, char appleSF, char poisonSF, char gateSF, int snakeM, int appleM, int poisonM, int gateM) {
         wmove(mission_win, 0, 0);
-        wborder(mission_win, '|','|','-','-','o','o','o','o');
+        wborder(mission_win, '|', '|', '-', '-', 'o', 'o', 'o', 'o');
 
         mvwprintw(mission_win, 1, 3, "MISSION BOARD");
         mvwprintw(mission_win, 3, 3, "B : %d (%c)", snakeM, snakeSF);
-        mvwprintw(mission_win, 4, 3, "+ : %d (%c)", appleM ,appleSF);
+        mvwprintw(mission_win, 4, 3, "+ : %d (%c)", appleM, appleSF);
         mvwprintw(mission_win, 5, 3, "- : %d (%c)", poisonM, poisonSF);
         mvwprintw(mission_win, 6, 3, "G : %d (%c)", gateM, gateSF);
 
         wrefresh(mission_win);
     }
 
-private:
     WINDOW* board_win;
-    WINDOW *score_win = newwin(11, 20, 0, 24);
-    WINDOW *mission_win = newwin(11, 20, 11, 24);
-    int speed, snakeC{0}, maxSnakeC{0}, appleC{0}, poisonC{0}, gateC{0};
+    WINDOW* score_win;
+    WINDOW* mission_win;
+    int speed;
+    int snakeC{0}, maxSnakeC{0}, appleC{0}, poisonC{0}, gateC{0};
     int snakeM{0}, appleM{0}, poisonM{0}, gateM{0};
-    char snakeSF{'O'}, appleSF{'X'}, poisonSF{'X'}, gateSF{'X'};
+    char snakeSF{'X'}, appleSF{'X'}, poisonSF{'X'}, gateSF{'X'};
+
+    std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
 };

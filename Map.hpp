@@ -1,10 +1,10 @@
-//Map.hpp
-
+// Map.hpp
 #pragma once
 #include <iostream>
 #include <vector>
 #include <fstream>
 #include <string>
+#include <stdexcept>
 using namespace std;
 #include <ncurses.h>
 
@@ -15,7 +15,7 @@ public:
     int **map;
     std::string mapName; // 불러올 map 파일 이름
 
-    Map() {}
+    Map() : mapY(0), mapX(0), map(nullptr) {}  // 기본 생성자
 
     Map(int stage) {
         switch (stage) {
@@ -41,20 +41,31 @@ public:
             throw runtime_error("Unable to open map file: " + mapName);
         }
         in >> mapY >> mapX;
+        if (mapY <= 0 || mapX <= 0) {
+            throw runtime_error("Invalid map size in file: " + mapName);
+        }
         map = new int *[mapY];
         for (int i = 0; i < mapY; ++i) {
             map[i] = new int[mapX];
             for (int j = 0; j < mapX; ++j) {
-                in >> map[i][j];
+                if (!(in >> map[i][j])) {
+                    throw runtime_error("Error reading map data from file: " + mapName);
+                }
             }
         }
     }
 
     int getValue(int y, int x) const {
+        if (y < 0 || y >= mapY || x < 0 || x >= mapX) {
+            throw out_of_range("Map position out of range");
+        }
         return map[y][x];
     }
 
     void setValue(int y, int x, int value) {
+        if (y < 0 || y >= mapY || x < 0 || x >= mapX) {
+            throw out_of_range("Map position out of range");
+        }
         map[y][x] = value;
     }
 

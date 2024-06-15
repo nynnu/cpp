@@ -1,4 +1,4 @@
-//Item.hpp
+// Item.hpp
 
 #pragma once
 #include <ncurses.h>
@@ -9,31 +9,21 @@
 #include "Snake.hpp"
 #include "Board.hpp"
 
-// Item게임 내 아이템을 정의
+// Item 게임 내 아이템을 정의
 class Item {
 public:
     // 아이템의 위치, 아이콘, 지속 시간, 생성 시간 초기화
     Item(int y, int x, chtype icon, int duration)
         : y(y), x(x), icon(icon), duration(duration), spawnTime(time(NULL)) {}
 
-
     int getY() const { return y; }
-
     int getX() const { return x; }
-
     chtype getIcon() const { return icon; }
-
     time_t getSpawnTime() const { return spawnTime; }
-
     int getDuration() const { return duration; }
-
     void resetSpawnTime() { spawnTime = time(NULL); }
-
     virtual void respawn(int maxY, int maxX) = 0;
-
-
     void setY(int newY) { y = newY; }
-
     void setX(int newX) { x = newX; }
 
 private:
@@ -57,7 +47,6 @@ public:
     }
 };
 
-
 class Poison : public Item {
 public:
     // 생성자: 랜덤한 위치에 독 아이템 생성
@@ -75,12 +64,10 @@ public:
 // ItemManager  아이템의 생성, 삭제, 갱신 관리
 class ItemManager {
 public:
-
     ItemManager(int maxY, int maxX) : maxY(maxY), maxX(maxX) {
         srand(time(NULL)); 
         spawnInitialItems();
     }
-
 
     ~ItemManager() {
         for (auto item : items) {
